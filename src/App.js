@@ -1,54 +1,51 @@
-import React from 'react';
-import './App.css';
-import MainWeatherWindow from './components/MainWeatherWindow';
-import CityInput from './components/CityInput';
-import WeatherBox from './components/WeatherBox';
+import React, { useState, useEffect } from "react";
+import "./App.css";
+import MainWeatherWindow from "./components/MainWeatherWindow";
+import CityInput from "./components/CityInput";
+import WeatherBox from "./components/WeatherBox";
 
-class App extends React.Component {
-  state = {
-    city: undefined,
+function App() {
+  const [city, setCity] = useState(undefined);
+  const [days, setDays] = useState(new Array(5).fill(null));
 
-    // days contains objects with the following properties:
-    // date, weather_desc, icon, temp
-    days: new Array(5)
-  };
-
-  // creates the day objects and updates the state
-  updateState = data => {
-    const city = data.city.name;
-    const days = [];
-    const dayIndices = this.getDayIndices(data);
+  const updateState = (data) => {
+    const cityName = data.city.name;
+    const newDays = [];
+    const dayIndices = getDayIndices(data);
 
     for (let i = 0; i < 5; i++) {
-      days.push({
+      newDays.push({
         date: data.list[dayIndices[i]].dt_txt,
         weather_desc: data.list[dayIndices[i]].weather[0].description,
         icon: data.list[dayIndices[i]].weather[0].icon,
-        temp: data.list[dayIndices[i]].main.temp
+        temp: data.list[dayIndices[i]].main.temp,
       });
     }
 
-    this.setState({
-      city: city,
-      days: days
-    });
+    setCity(cityName);
+    setDays(newDays);
   };
 
-  // tries to make an API call with the given city name and triggers state update
-  makeApiCall = async city => {
-    const api_data = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?q=${city}&APPID=6557810176c36fac5f0db536711a6c52`
-    ).then(resp => resp.json());
+  const makeApiCall = async (cityName) => {
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&APPID=6557810176c36fac5f0db536711a6c52`
+      );
+      const apiData = await response.json();
 
-    if (api_data.cod === '200') {
-      await this.updateState(api_data);
-      return true;
-    } else return false;
+      if (apiData.cod === "200") {
+        updateState(apiData);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      return false;
+    }
   };
 
-  // returns array with Indices of the next five days in the list
-  // from the API data (every day at 12:00 pm)
-  getDayIndices = data => {
+  const getDayIndices = (data) => {
     let dayIndices = [];
     dayIndices.push(0);
 
@@ -58,7 +55,7 @@ class App extends React.Component {
     for (let i = 0; i < 4; i++) {
       while (
         tmp === data.list[index].dt_txt.slice(8, 10) ||
-        data.list[index].dt_txt.slice(11, 13) !== '15'
+        data.list[index].dt_txt.slice(11, 13) !== "15"
       ) {
         index++;
       }
@@ -68,28 +65,30 @@ class App extends React.Component {
     return dayIndices;
   };
 
-  render() {
-    const WeatherBoxes = () => {
-      const weatherBoxes = this.state.days.slice(1).map(day => (
-        <li>
-          <WeatherBox {...day} />
-        </li>
-      ));
+  useEffect(() => {
+    // Perform initial API call here if needed
+  }, []);
 
-      return <ul className='weather-box-list'>{weatherBoxes}</ul>;
-    };
+  const WeatherBoxes = () => {
+    const weatherBoxes = days.slice(1).map((day, index) => (
+      <li key={index}>
+        <WeatherBox {...day} />
+      </li>
+    ));
 
-    return (
-      <div className='App'>
-        <header className='App-header'>
-          <MainWeatherWindow data={this.state.days[0]} city={this.state.city}>
-            <CityInput city={this.state.city} makeApiCall={this.makeApiCall.bind(this)} />
-            <WeatherBoxes />
-          </MainWeatherWindow>
-        </header>
-      </div>
-    );
-  }
+    return <ul className="weather-box-list">{weatherBoxes}</ul>;
+  };
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <MainWeatherWindow data={days[0]} city={city}>
+          <CityInput city={city} makeApiCall={makeApiCall} />
+          <WeatherBoxes />
+        </MainWeatherWindow>
+      </header>
+    </div>
+  );
 }
 
 export default App;

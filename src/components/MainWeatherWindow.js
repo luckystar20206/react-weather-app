@@ -1,45 +1,52 @@
-import React from 'react';
-import './MainWeatherWindow.css';
+import React from "react";
+// import "./MainWeatherWindow.css";
+// import { ReactSVG } from "react-svg";
 
-export default class MainWeatherWindow extends React.Component {
-  render(props) {
-    const Title = this.props.city ? null : <h1 className='title'>Weather Forecast</h1>;
+function MainWeatherWindow(props) {
+  const { city, data } = props;
 
-    return (
-      <div className='main'>
-        <div className='inner-main'>
-          {Title}
-          <img
-            src={
-              this.props.data
-                ? require(`../images/${this.props.data.icon}.svg`)
-                : require('../images/01d.svg')
-            }
-            alt='sun'
-            style={{
-              visibility: this.props.city ? 'visible' : 'hidden',
-              opacity: this.props.city ? '1' : '0'
-            }}
-          />
+  const Title = city ? null : <h1 className="title">Weather Forecast</h1>;
 
-          <div
-            className='today'
-            style={{
-              visibility: this.props.city ? 'visible' : 'hidden',
-              opacity: this.props.city ? '1' : '0'
-            }}
-          >
-            <span>Today</span>
-            <h1>{this.props.city}</h1>
-            <p>
-              Temperature: {this.props.data ? Math.round(this.props.data.temp - 273.15) : 0}
-              °C
-            </p>
-            <p>{this.props.data ? this.props.data.weather_desc.toLowerCase() : ''}</p>
-          </div>
+  return (
+    <div className="main">
+      <div className="inner-main">
+        {Title}
+        <img
+          src={data ? `/images/${data.icon}.svg` : "/images/01d.svg"}
+          alt="sun"
+          style={{
+            visibility: city ? "visible" : "hidden",
+            opacity: city ? "1" : "0",
+          }}
+        />
+        {/* <ReactSVG
+          src={data ? `./images/${data.icon}.svg` : "./images/01d.svg"}
+          alt="sun"
+          style={{
+            visibility: city ? "visible" : "hidden",
+            opacity: city ? "1" : "0",
+          }}
+        /> */}
+
+        <div
+          className="today"
+          style={{
+            visibility: city ? "visible" : "hidden",
+            opacity: city ? "1" : "0",
+          }}
+        >
+          <span>Today</span>
+          <h1>{city}</h1>
+          <p>
+            Temperature: {data ? Math.round(data.temp - 273.15) : 0}
+            °C
+          </p>
+          <p>{data ? data.weather_desc.toLowerCase() : ""}</p>
         </div>
-        {this.props.children}
       </div>
-    );
-  }
+      {props.children}
+    </div>
+  );
 }
+
+export default MainWeatherWindow;
